@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RS Stock</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <!-- Menu Superior de Navegação -->
+  <nav class="navbar">
+    <!-- Logotipo com imagem e nome destacados no canto superior esquerdo -->
+    <div class="logo" style="display: flex; align-items: center; gap: 12px; font-weight: bold; font-size: 1.5rem;">
+      <img src="logotipo final.png" alt="RS Stock Logo" style="height: 45px; width: auto; object-fit: contain;">
+      <span>RS Stock</span>
+    </div>
+
+    <ul class="nav-links">
+      <li><button class="nav-btn active" onclick="switchTab('tab-entrada')">Entrada de Produtos</button></li>
+      <li><button class="nav-btn" onclick="switchTab('tab-saida')">Saída / Retirada</button></li>
+      <li><button class="nav-btn" onclick="switchTab('tab-inventario')">Inventário Completo</button></li>
+      <li><button class="nav-btn" onclick="switchTab('tab-categorias')">Categorias</button></li>
+      <li><button class="nav-btn" onclick="switchTab('tab-usuarios')">Usuários</button></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+
+    <!-- PÁGINA 1: ENTRADA DE PRODUTOS -->
+    <section id="tab-entrada" class="tab-content active-tab">
+      <h2>Cadastrar Entrada de Produto</h2>
+      <div class="form-card">
+        <form id="form-entrada">
+          <div class="form-group">
+            <label for="select-categoria-entrada">Categoria</label>
+            <select id="select-categoria-entrada" onchange="toggleImeiFields()" required>
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="input-nome-entrada">Nome do Produto</label>
+            <input type="text" id="input-nome-entrada" placeholder="Ex: Câmera JC450 ou Fita Isolante" required>
+          </div>
+
+          <!-- Campos para produtos SEM IMEI -->
+          <div id="field-qtd-group" class="form-group">
+            <label for="input-qtd-entrada">Quantidade</label>
+            <input type="number" id="input-qtd-entrada" min="1" placeholder="Ex: 10">
+          </div>
+
+          <!-- Campos dinâmicos para produtos COM IMEI -->
+          <div id="field-imei-group" class="form-group" style="display: none;">
+            <label for="input-imeis-entrada">IMEIs / Números de Série (Separados por vírgula ou linha)</label>
+            <textarea id="input-imeis-entrada" rows="4" placeholder="Ex: 354890123456789, 354890123456790"></textarea>
+            <small style="color: #666;">A quantidade será calculada automaticamente pelo total de IMEIs inseridos.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="input-min-entrada">Estoque Mínimo (Alerta)</label>
+            <input type="number" id="input-min-entrada" min="0" value="5" placeholder="Ex: 5" required>
+          </div>
+          <button type="submit">Registrar Entrada</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PÁGINA 2: SAÍDA / RETIRADA POR USUÁRIO -->
+    <section id="tab-saida" class="tab-content">
+      <h2>Registrar Saída para Usuário/Setor</h2>
+      <div class="form-card">
+        <form id="form-saida">
+          <div class="form-group">
+            <label for="select-produto-saida">Selecione o Produto</label>
+            <select id="select-produto-saida" onchange="toggleSaidaImeiSelect()" required>
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="select-usuario-saida">Selecione o Destinatário/Usuário</label>
+            <select id="select-usuario-saida" required>
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+
+          <!-- Seleção para produtos SEM IMEI -->
+          <div id="group-saida-qtd" class="form-group">
+            <label for="input-qtd-saida">Quantidade de Saída</label>
+            <input type="number" id="input-qtd-saida" min="1" placeholder="Ex: 2">
+          </div>
+
+          <!-- Seleção para produtos COM IMEI -->
+          <div id="group-saida-imei" class="form-group" style="display: none;">
+            <label for="select-imei-saida">Selecione o IMEI a ser retirado</label>
+            <select id="select-imei-saida">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+
+          <button type="submit" class="btn-warning">Confirmar Saída</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PÁGINA 3: INVENTÁRIO COMPLETO -->
+    <section id="tab-inventario" class="tab-content">
+      <h2>Inventário Geral</h2>
+
+      <div class="metrics-grid">
+        <div class="card">
+          <h3>Total de Produtos Únicos</h3>
+          <p id="total-items">0</p>
+        </div>
+        <div class="card">
+          <h3>Total de Unidades em Estoque</h3>
+          <p id="total-quantity">0</p>
+        </div>
+      </div>
+
+      <div class="search-container" style="margin-bottom: 16px;">
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="🔍 Buscar produto pelo nome, categoria ou IMEI..." 
+          oninput="renderInventario()"
+          style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;"
+        >
+      </div>
+
+      <div class="table-card">
+        <h3>Produtos Registrados</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Produto</th>
+              <th>Categoria</th>
+              <th>Qtd em Estoque</th>
+              <th>IMEIs Disponíveis</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-inventario">
+            <!-- Linhas via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-card" style="margin-top: 24px;">
+        <h3>Histórico Geral de Movimentações</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Tipo</th>
+              <th>Produto</th>
+              <th>Qtd</th>
+              <th>IMEI</th>
+              <th>Destinatário</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-historico">
+            <!-- Linhas via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PÁGINA 4: GERENCIAR CATEGORIAS -->
+    <section id="tab-categorias" class="tab-content">
+      <h2>Gerenciar Categorias de Produtos</h2>
+      <div class="main-grid">
+        <div class="form-card">
+          <h3>Nova Categoria</h3>
+          <form id="form-categoria">
+            <div class="form-group">
+              <label for="input-nome-categoria">Nome da Categoria</label>
+              <input type="text" id="input-nome-categoria" placeholder="Ex: Câmeras, Rastreadores, Insumos" required>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="check-requer-imei" style="width: auto;">
+              <label for="check-requer-imei" style="margin-bottom: 0;">Esta categoria exige controle de IMEI / Nº de Série?</label>
+            </div>
+            <button type="submit">Salvar Categoria</button>
+          </form>
+        </div>
+
+        <div class="table-card">
+          <h3>Categorias Existentes</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Requer IMEI?</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-categorias">
+              <!-- Linhas via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PÁGINA 5: GERENCIAR USUÁRIOS -->
+    <section id="tab-usuarios" class="tab-content">
+      <h2>Cadastro de Usuários / Destinatários</h2>
+      <div class="main-grid">
+        <div class="form-card">
+          <h3>Novo Usuário</h3>
+          <form id="form-usuario">
+            <div class="form-group">
+              <label for="input-nome-usuario">Nome Completo</label>
+              <input type="text" id="input-nome-usuario" placeholder="Ex: João Silva" required>
+            </div>
+            <div class="form-group">
+              <label for="input-setor-usuario">Setor / Departamento</label>
+              <input type="text" id="input-setor-usuario" placeholder="Ex: TI / Instalação" required>
+            </div>
+            <button type="submit">Cadastrar Usuário</button>
+          </form>
+        </div>
+
+        <div class="table-card">
+          <h3>Usuários Cadastrados</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Setor</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-usuarios">
+              <!-- Linhas via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
